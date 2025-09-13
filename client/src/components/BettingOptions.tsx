@@ -10,6 +10,8 @@ export default function BettingOptions() {
   const { 
     gameState, 
     previousRoll, 
+    credits,
+    currentBet,
     placeBet,
     getPreviousTotal
   } = useDiceGame();
@@ -18,6 +20,7 @@ export default function BettingOptions() {
   const [exactValue, setExactValue] = useState<number>(10);
   const [rangeMin, setRangeMin] = useState<number>(8);
   const [rangeMax, setRangeMax] = useState<number>(12);
+  const [betAmount, setBetAmount] = useState<number>(10);
   
   const previousTotal = getPreviousTotal();
   
@@ -26,41 +29,40 @@ export default function BettingOptions() {
   }
 
   const handleComparisonBet = (prediction: "higher" | "lower") => {
-    placeBet(prediction, "comparison");
+    if (credits >= betAmount) {
+      placeBet(prediction, "comparison", undefined, betAmount);
+    }
   };
 
   const handleExactBet = () => {
-    if (exactValue >= 3 && exactValue <= 18) {
+    if (exactValue >= 3 && exactValue <= 18 && credits >= betAmount) {
       const bet: ExactBet = { value: exactValue };
-      placeBet("exact", "exact", bet);
+      placeBet("exact", "exact", bet, betAmount);
     }
   };
 
   const handleRangeBet = () => {
-    if (rangeMin >= 3 && rangeMax <= 18 && rangeMin <= rangeMax) {
+    if (rangeMin >= 3 && rangeMax <= 18 && rangeMin <= rangeMax && credits >= betAmount) {
       const bet: RangeBet = { min: rangeMin, max: rangeMax };
-      placeBet("range", "range", bet);
+      placeBet("range", "range", bet, betAmount);
     }
   };
 
   // Calculate potential payouts
   const getExactPayout = (value: number) => {
-    // Higher payout for harder to hit numbers
-    const probability = value === 10 || value === 11 ? 0.125 : 
-                       value === 9 || value === 12 ? 0.111 :
-                       value === 8 || value === 13 ? 0.097 :
-                       value === 7 || value === 14 ? 0.083 :
-                       value === 6 || value === 15 ? 0.069 :
-                       value === 5 || value === 16 ? 0.056 :
-                       value === 4 || value === 17 ? 0.042 :
-                       0.028; // 3 or 18
-    return Math.round(1 / probability);
+    if (value === 10 || value === 11) return 8;
+    else if (value === 9 || value === 12) return 9;
+    else if (value === 8 || value === 13) return 10;
+    else if (value === 7 || value === 14) return 12;
+    else if (value === 6 || value === 15) return 14;
+    else if (value === 5 || value === 16) return 18;
+    else if (value === 4 || value === 17) return 24;
+    else return 36; // 3 or 18
   };
 
   const getRangePayout = (min: number, max: number) => {
     const rangeSize = max - min + 1;
-    const basePayout = Math.max(2, Math.round(16 / rangeSize));
-    return basePayout;
+    return Math.max(2, Math.round(16 / rangeSize));
   };
 
   return (
@@ -69,6 +71,26 @@ export default function BettingOptions() {
         <CardTitle className="text-xl font-bold">投注選項</CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Credits and Bet Amount Display */}
+        <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-800 rounded-lg">
+          <div className="text-center">
+            <p className="text-sm text-gray-400">餘額</p>
+            <p className="text-lg font-bold text-green-400">{credits} 積分</p>
+          </div>
+          <div className="text-center">
+            <Label htmlFor="betAmount" className="text-white text-sm">投注金額</Label>
+            <Input
+              id="betAmount"
+              type="number"
+              min="1"
+              max={credits}
+              value={betAmount}
+              onChange={(e) => setBetAmount(Math.min(Number(e.target.value), credits))}
+              className="bg-gray-700 border-gray-600 text-white text-center"
+            />
+          </div>
+        </div>
+
         <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as BetType)}>
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">
             <TabsTrigger value="comparison" className="text-white data-[state=active]:bg-blue-600">
@@ -89,17 +111,19 @@ export default function BettingOptions() {
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 onClick={() => handleComparisonBet("higher")}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={credits < betAmount}
+                className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
               >
                 比上局大 (&gt;{previousTotal})
-                <span className="block text-xs">倍率: 2x</span>
+                <span className="block text-xs">倍率: 2x | 獲利: {betAmount * 2}</span>
               </Button>
               <Button 
                 onClick={() => handleComparisonBet("lower")}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={credits < betAmount}
+                className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
                 比上局小 (&lt;{previousTotal})
-                <span className="block text-xs">倍率: 2x</span>
+                <span className="block text-xs">倍率: 2x | 獲利: {betAmount * 2}</span>
               </Button>
             </div>
           </TabsContent>
@@ -121,11 +145,11 @@ export default function BettingOptions() {
             </div>
             <Button 
               onClick={handleExactBet}
-              disabled={exactValue < 3 || exactValue > 18}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={exactValue < 3 || exactValue > 18 || credits < betAmount}
+              className="w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
             >
               投注準確點數: {exactValue}
-              <span className="block text-xs">倍率: {getExactPayout(exactValue)}x</span>
+              <span className="block text-xs">倍率: {getExactPayout(exactValue)}x | 獲利: {betAmount * getExactPayout(exactValue)}</span>
             </Button>
           </TabsContent>
           
@@ -162,11 +186,11 @@ export default function BettingOptions() {
             </div>
             <Button 
               onClick={handleRangeBet}
-              disabled={rangeMin < 3 || rangeMax > 18 || rangeMin > rangeMax}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={rangeMin < 3 || rangeMax > 18 || rangeMin > rangeMax || credits < betAmount}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
             >
               投注範圍: {rangeMin}-{rangeMax}
-              <span className="block text-xs">倍率: {getRangePayout(rangeMin, rangeMax)}x</span>
+              <span className="block text-xs">倍率: {getRangePayout(rangeMin, rangeMax)}x | 獲利: {betAmount * getRangePayout(rangeMin, rangeMax)}</span>
             </Button>
           </TabsContent>
         </Tabs>

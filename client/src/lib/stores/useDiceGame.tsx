@@ -24,14 +24,18 @@ interface DiceGameState {
   wins: number;
   losses: number;
   totalGames: number;
+  credits: number;
+  currentBet: number;
+  currentMultiplier: number;
   
   // Actions
   rollDice: () => void;
-  placeBet: (prediction: Prediction, betType?: BetType, betValue?: ExactBet | RangeBet) => void;
+  placeBet: (prediction: Prediction, betType?: BetType, betValue?: ExactBet | RangeBet, betAmount?: number) => void;
   resetGame: () => void;
   getCurrentTotal: () => number;
   getPreviousTotal: () => number;
   checkBetResult: () => boolean | null;
+  getMultiplier: () => number;
 }
 
 export const useDiceGame = create<DiceGameState>()(
@@ -47,6 +51,9 @@ export const useDiceGame = create<DiceGameState>()(
     wins: 0,
     losses: 0,
     totalGames: 0,
+    credits: 1000, // Starting credits
+    currentBet: 10, // Default bet amount
+    currentMultiplier: 2,
     
     rollDice: () => {
       const state = get();
@@ -73,6 +80,8 @@ export const useDiceGame = create<DiceGameState>()(
         let newTotalGames = state.totalGames;
         
         // Calculate result if there was a prediction
+        let newCredits = state.credits;
+        
         if (state.prediction) {
           newTotalGames++;
           
@@ -90,8 +99,10 @@ export const useDiceGame = create<DiceGameState>()(
           
           if (wasCorrect) {
             newWins++;
+            newCredits += state.currentBet * state.currentMultiplier;
           } else {
             newLosses++;
+            newCredits -= state.currentBet;
           }
         }
         
@@ -102,6 +113,7 @@ export const useDiceGame = create<DiceGameState>()(
           wins: newWins,
           losses: newLosses,
           totalGames: newTotalGames,
+          credits: newCredits,
         });
         
         // Auto-transition to waiting state after showing result
@@ -120,11 +132,36 @@ export const useDiceGame = create<DiceGameState>()(
       }, 2500); // Allow time for dice animation
     },
     
-    placeBet: (prediction: Prediction, betType: BetType = "comparison", betValue?: ExactBet | RangeBet) => {
+    placeBet: (prediction: Prediction, betType: BetType = "comparison", betValue?: ExactBet | RangeBet, betAmount: number = 10) => {
+      const state = get();
+      
+      // Calculate multiplier based on bet type
+      let multiplier = 2; // Default for comparison
+      
+      if (betType === "exact" && betValue) {
+        const exactBet = betValue as ExactBet;
+        const value = exactBet.value;
+        // Higher payout for harder to hit numbers
+        if (value === 10 || value === 11) multiplier = 8;
+        else if (value === 9 || value === 12) multiplier = 9;
+        else if (value === 8 || value === 13) multiplier = 10;
+        else if (value === 7 || value === 14) multiplier = 12;
+        else if (value === 6 || value === 15) multiplier = 14;
+        else if (value === 5 || value === 16) multiplier = 18;
+        else if (value === 4 || value === 17) multiplier = 24;
+        else multiplier = 36; // 3 or 18
+      } else if (betType === "range" && betValue) {
+        const rangeBet = betValue as RangeBet;
+        const rangeSize = rangeBet.max - rangeBet.min + 1;
+        multiplier = Math.max(2, Math.round(16 / rangeSize));
+      }
+      
       const updates: any = { 
         prediction, 
         betType,
-        gameState: "betting"
+        gameState: "betting",
+        currentBet: betAmount,
+        currentMultiplier: multiplier
       };
       
       if (betType === "exact" && betValue) {
@@ -154,6 +191,9 @@ export const useDiceGame = create<DiceGameState>()(
         wins: 0,
         losses: 0,
         totalGames: 0,
+        credits: 1000,
+        currentBet: 10,
+        currentMultiplier: 2,
       });
     },
     
@@ -174,6 +214,11 @@ export const useDiceGame = create<DiceGameState>()(
       }
       
       return null;
+    },
+    
+    getMultiplier: () => {
+      const state = get();
+      return state.currentMultiplier;
     },
     
     getCurrentTotal: () => {

@@ -14,6 +14,8 @@ export default function GameUI() {
     betType,
     exactBet,
     rangeBet,
+    currentBet,
+    currentMultiplier,
     isRolling,
     rollDice,
     resetGame,
@@ -78,9 +80,9 @@ export default function GameUI() {
                 {prediction && (
                   <p className="text-xl font-bold mt-2">
                     {checkBetResult() ? (
-                      <span className="text-green-400">✓ 預測正確！</span>
+                      <span className="text-green-400">✓ 預測正確！獲得 {currentBet * currentMultiplier} 積分</span>
                     ) : (
-                      <span className="text-red-400">✗ 預測錯誤</span>
+                      <span className="text-red-400">✗ 預測錯誤！失去 {currentBet} 積分</span>
                     )}
                   </p>
                 )}
