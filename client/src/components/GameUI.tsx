@@ -1,4 +1,3 @@
-import { Html } from "@react-three/drei";
 import { useDiceGame } from "../lib/stores/useDiceGame.tsx";
 import { useAudio } from "../lib/stores/useAudio";
 import { Button } from "./ui/button";
@@ -25,8 +24,7 @@ export default function GameUI() {
   const previousTotal = getPreviousTotal();
 
   return (
-    <Html position={[0, 0, 5]} center>
-      <div className="flex flex-col items-center space-y-4 p-4">
+    <div className="flex flex-col items-center space-y-4 p-4">
         {/* Game Title */}
         <Card className="bg-black/80 border-white/20 text-white min-w-[400px]">
           <CardHeader className="text-center">
@@ -143,7 +141,6 @@ export default function GameUI() {
         >
           {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </Button>
-      </div>
-    </Html>
+    </div>
   );
 }

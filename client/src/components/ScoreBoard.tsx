@@ -1,4 +1,3 @@
-import { Html } from "@react-three/drei";
 import { useDiceGame } from "../lib/stores/useDiceGame.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
@@ -8,8 +7,7 @@ export default function ScoreBoard() {
   const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : "0.0";
 
   return (
-    <Html position={[6, 3, 0]} center>
-      <Card className="bg-black/80 border-white/20 text-white w-64">
+    <Card className="bg-black/80 border-white/20 text-white w-64">
         <CardHeader>
           <CardTitle className="text-lg text-center">戰績統計</CardTitle>
         </CardHeader>
@@ -33,7 +31,6 @@ export default function ScoreBoard() {
             </div>
           </div>
         </CardContent>
-      </Card>
-    </Html>
+    </Card>
   );
 }

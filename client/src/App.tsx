@@ -1,12 +1,11 @@
-import { Canvas } from "@react-three/fiber";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "@fontsource/inter";
 import DiceGame from "./components/DiceGame";
 import { useAudio } from "./lib/stores/useAudio";
 
 // Main App component
 function App() {
-  const [showCanvas, setShowCanvas] = useState(false);
+  const [gameReady, setGameReady] = useState(false);
   const { setBackgroundMusic, setHitSound, setSuccessSound } = useAudio();
 
   // Initialize audio when component mounts
@@ -26,49 +25,20 @@ function App() {
     successAudio.volume = 0.7;
     setSuccessSound(successAudio);
 
-    setShowCanvas(true);
+    setGameReady(true);
   }, [setBackgroundMusic, setHitSound, setSuccessSound]);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      {showCanvas && (
-        <>
-          <Canvas
-            shadows
-            camera={{
-              position: [0, 4, 8],
-              fov: 45,
-              near: 0.1,
-              far: 1000
-            }}
-            gl={{
-              antialias: true,
-              powerPreference: "default"
-            }}
-          >
-            <color attach="background" args={["#1a1a2e"]} />
-            
-            {/* Lighting */}
-            <ambientLight intensity={0.4} />
-            <directionalLight
-              position={[10, 10, 5]}
-              intensity={1}
-              castShadow
-              shadow-mapSize={[2048, 2048]}
-              shadow-camera-far={50}
-              shadow-camera-left={-10}
-              shadow-camera-right={10}
-              shadow-camera-top={10}
-              shadow-camera-bottom={-10}
-            />
-            <pointLight position={[0, 5, 0]} intensity={0.5} />
-
-            <Suspense fallback={null}>
-              <DiceGame />
-            </Suspense>
-          </Canvas>
-        </>
-      )}
+    <div 
+      style={{ 
+        width: '100vw', 
+        height: '100vh', 
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {gameReady && <DiceGame />}
     </div>
   );
 }

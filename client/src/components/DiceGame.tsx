@@ -1,6 +1,4 @@
-import { useFrame } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
-import * as THREE from "three";
+import { useEffect } from "react";
 import Dice from "./Dice.tsx";
 import GameUI from "./GameUI.tsx";
 import ScoreBoard from "./ScoreBoard.tsx";
@@ -8,14 +6,10 @@ import { useDiceGame } from "../lib/stores/useDiceGame.tsx";
 import { useAudio } from "../lib/stores/useAudio";
 
 export default function DiceGame() {
-  const gameRef = useRef<THREE.Group>(null);
   const { 
     gameState, 
     currentRoll, 
-    previousRoll,
-    isRolling,
-    rollDice,
-    resetGame
+    isRolling
   } = useDiceGame();
   const { playHit, playSuccess } = useAudio();
 
@@ -28,45 +22,42 @@ export default function DiceGame() {
     }
   }, [gameState, currentRoll, playHit, playSuccess]);
 
-  // Create ground plane
-  const Ground = () => (
-    <mesh 
-      receiveShadow 
-      rotation={[-Math.PI / 2, 0, 0]} 
-      position={[0, -1, 0]}
-    >
-      <planeGeometry args={[20, 20]} />
-      <meshStandardMaterial color="#2d2d44" />
-    </mesh>
-  );
-
   return (
-    <group ref={gameRef}>
-      <Ground />
-      
-      {/* Dice positioning */}
-      <Dice 
-        position={[-2, 2, 0]} 
-        value={currentRoll[0] || 1}
-        isRolling={isRolling}
-        rollDelay={0}
-      />
-      <Dice 
-        position={[0, 2, 0]} 
-        value={currentRoll[1] || 1}
-        isRolling={isRolling}
-        rollDelay={0.2}
-      />
-      <Dice 
-        position={[2, 2, 0]} 
-        value={currentRoll[2] || 1}
-        isRolling={isRolling}
-        rollDelay={0.4}
-      />
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 relative">
+      {/* Game Title */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">🎲 骰子比大小 🎲</h1>
+        <p className="text-xl text-gray-300">預測下一局點數與上一局的大小關係</p>
+      </div>
 
-      {/* UI Components */}
-      <GameUI />
-      <ScoreBoard />
-    </group>
+      {/* Dice Container */}
+      <div className="flex justify-center items-center space-x-6 mb-8">
+        <Dice 
+          value={currentRoll[0] || 1}
+          isRolling={isRolling}
+          rollDelay={0}
+        />
+        <Dice 
+          value={currentRoll[1] || 1}
+          isRolling={isRolling}
+          rollDelay={0.2}
+        />
+        <Dice 
+          value={currentRoll[2] || 1}
+          isRolling={isRolling}
+          rollDelay={0.4}
+        />
+      </div>
+
+      {/* Game UI */}
+      <div className="w-full max-w-4xl flex justify-center">
+        <GameUI />
+      </div>
+
+      {/* Score Board - positioned in top right */}
+      <div className="absolute top-4 right-4">
+        <ScoreBoard />
+      </div>
+    </div>
   );
 }
