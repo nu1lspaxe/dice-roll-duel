@@ -3,6 +3,7 @@ import { useAudio } from "../lib/stores/useAudio";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Volume2, VolumeX } from "lucide-react";
+import BettingOptions from "./BettingOptions.tsx";
 
 export default function GameUI() {
   const { 
@@ -10,12 +11,15 @@ export default function GameUI() {
     currentRoll, 
     previousRoll, 
     prediction,
+    betType,
+    exactBet,
+    rangeBet,
     isRolling,
     rollDice,
-    placeBet,
     resetGame,
     getCurrentTotal,
-    getPreviousTotal
+    getPreviousTotal,
+    checkBetResult
   } = useDiceGame();
   
   const { isMuted, toggleMute } = useAudio();
@@ -52,20 +56,29 @@ export default function GameUI() {
             </div>
 
             {/* Result display */}
-            {gameState === "result" && previousTotal > 0 && currentTotal > 0 && (
+            {gameState === "result" && currentTotal > 0 && (
               <div className="mt-4 text-center">
-                <p className="text-lg">
-                  {currentTotal > previousTotal && "當前局 > 上一局"}
-                  {currentTotal < previousTotal && "當前局 < 上一局"}
-                  {currentTotal === previousTotal && "當前局 = 上一局"}
-                </p>
+                {betType === "comparison" && previousTotal > 0 && (
+                  <p className="text-lg">
+                    {currentTotal > previousTotal && "當前局 > 上一局"}
+                    {currentTotal < previousTotal && "當前局 < 上一局"}
+                    {currentTotal === previousTotal && "當前局 = 上一局"}
+                  </p>
+                )}
+                {betType === "exact" && exactBet && (
+                  <p className="text-lg">
+                    預測點數: {exactBet.value} | 實際點數: {currentTotal}
+                  </p>
+                )}
+                {betType === "range" && rangeBet && (
+                  <p className="text-lg">
+                    預測範圍: {rangeBet.min}-{rangeBet.max} | 實際點數: {currentTotal}
+                  </p>
+                )}
                 {prediction && (
                   <p className="text-xl font-bold mt-2">
-                    {(prediction === "higher" && currentTotal > previousTotal) ||
-                     (prediction === "lower" && currentTotal < previousTotal) ? (
+                    {checkBetResult() ? (
                       <span className="text-green-400">✓ 預測正確！</span>
-                    ) : currentTotal === previousTotal ? (
-                      <span className="text-yellow-400">= 平局</span>
                     ) : (
                       <span className="text-red-400">✗ 預測錯誤</span>
                     )}
@@ -77,28 +90,8 @@ export default function GameUI() {
         </Card>
 
         {/* Betting Options */}
-        {gameState === "waiting" && previousTotal > 0 && (
-          <Card className="bg-black/80 border-white/20 text-white min-w-[400px]">
-            <CardContent className="pt-6">
-              <p className="text-center mb-4 text-gray-300">
-                選擇你的預測：
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={() => placeBet("higher")}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  比上局大 (&gt;{previousTotal})
-                </Button>
-                <Button 
-                  onClick={() => placeBet("lower")}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  比上局小 (&lt;{previousTotal})
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {gameState === "waiting" && (
+          <BettingOptions />
         )}
 
         {/* Roll Dice Button */}

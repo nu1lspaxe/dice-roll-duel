@@ -59,30 +59,42 @@ export default function Dice({ value, isRolling, rollDelay = 0 }: DiceProps) {
   return (
     <div 
       className={`
-        relative w-20 h-20 bg-white border-2 border-gray-300 rounded-lg shadow-lg
-        transition-all duration-300
-        ${isDelayedRolling ? 'animate-bounce scale-110' : 'scale-100'}
+        relative w-20 h-20 bg-gradient-to-br from-white to-gray-100 border-2 border-gray-400 rounded-xl shadow-2xl
+        transition-all duration-500 transform hover:scale-105
+        ${isDelayedRolling ? 'animate-pulse scale-110 rotate-12' : 'scale-100 rotate-0'}
       `}
       style={{
-        animation: isDelayedRolling ? 'spin 0.1s linear infinite' : 'none'
+        animation: isDelayedRolling ? 'spin 0.15s ease-in-out infinite, bounce 0.6s ease-in-out infinite' : 'none',
+        filter: isDelayedRolling ? 'drop-shadow(0 0 15px rgba(59, 130, 246, 0.5))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))'
       }}
     >
       {/* Dots */}
       {getDotPattern(displayValue).map((position, index) => (
         <div
           key={index}
-          className={`absolute w-3 h-3 bg-black rounded-full ${dotPositions[position as keyof typeof dotPositions]}`}
+          className={`absolute w-3 h-3 bg-gradient-to-br from-gray-800 to-black rounded-full shadow-inner ${dotPositions[position as keyof typeof dotPositions]}`}
+          style={{
+            animation: isDelayedRolling ? `dotPulse 0.3s ease-in-out infinite ${index * 0.1}s` : 'none'
+          }}
         />
       ))}
       
-      {/* Add custom spinning animation */}
+      {/* Add custom spinning and pulse animations */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg) scale(1.1); }
-          25% { transform: rotate(90deg) scale(1.1); }
+          25% { transform: rotate(90deg) scale(1.15); }
           50% { transform: rotate(180deg) scale(1.1); }
-          75% { transform: rotate(270deg) scale(1.1); }
+          75% { transform: rotate(270deg) scale(1.15); }
           100% { transform: rotate(360deg) scale(1.1); }
+        }
+        @keyframes dotPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.2); }
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
         }
       `}</style>
     </div>
