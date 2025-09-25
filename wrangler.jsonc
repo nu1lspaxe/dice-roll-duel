@@ -1,5 +1,5 @@
 {
-  "name": "rest-express",
+  "name": "dice-roll-duel",
   "main": "dist/index.js",            
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
