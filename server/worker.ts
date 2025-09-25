@@ -16,4 +16,6 @@ app.post('/api/roll', async (c) => {
   return c.json({ success: true })
 })
 
-export default app
+export default {
+  fetch: app.fetch
+}
